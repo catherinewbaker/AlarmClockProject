@@ -1,0 +1,337 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2708
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fnil\fcharset0 Menlo-Regular;}
+{\colortbl;\red255\green255\blue255;\red131\green148\blue149;\red255\green255\blue255;\red61\green73\blue78;
+\red96\green126\blue3;\red9\green74\blue76;\red199\green63\blue5;\red17\green134\blue139;\red52\green62\blue66;
+}
+{\*\expandedcolortbl;;\cssrgb\c58431\c64706\c65098;\cssrgb\c100000\c100000\c100000;\cssrgb\c30588\c35686\c38039;
+\cssrgb\c44706\c55686\c0;\cssrgb\c0\c36078\c37255;\cssrgb\c82745\c32941\c0;\cssrgb\c0\c59216\c61569;\cssrgb\c26275\c30980\c32941;
+}
+\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\deftab720
+\pard\pardeftab720\partightenfactor0
+
+\f0\fs24 \cf2 \cb3 \expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 //ARDUINO LIBRARIES\cf4 \cb1 \strokec4 \
+\pard\pardeftab720\partightenfactor0
+\cf5 \cb3 \strokec5 #include\cf4 \strokec4  \cf6 \strokec6 <MD_Parola.h>\cf4 \strokec4  \cf2 \strokec2 // for driving the LED matricies\cf4 \cb1 \strokec4 \
+\cf5 \cb3 \strokec5 #include\cf4 \strokec4  \cf6 \strokec6 <MD_MAX72xx.h>\cf4 \strokec4  \cf2 \strokec2 // for controlling and accessing the LED matricies\cf4 \cb1 \strokec4 \
+\cf5 \cb3 \strokec5 #include\cf4 \strokec4  \cf6 \strokec6 <SPI.h>\cf4 \strokec4  \cf2 \strokec2 // for describing the controls of the LED matricies\cf4 \cb1 \strokec4 \
+\cf5 \cb3 \strokec5 #include\cf4 \strokec4  \cf6 \strokec6 <TimeLib.h>\cf4 \strokec4  \cf2 \strokec2 // to set clock time\cf4 \cb1 \strokec4 \
+\cf5 \cb3 \strokec5 #include\cf4 \strokec4  \cf6 \strokec6 <time.h>\cf4 \strokec4  \cf2 \strokec2 // to get random numbers for the button game\cf4 \cb1 \strokec4 \
+\cf5 \cb3 \strokec5 #include\cf4 \strokec4  \cf6 \strokec6 <stdlib.h>\cf4 \strokec4  \cf2 \strokec2 // to get random numbers for the button game\cf4 \cb1 \strokec4 \
+\
+\pard\pardeftab720\partightenfactor0
+\cf2 \cb3 \strokec2 //CLOCK DISPLAY VARIABLES\cf4 \cb1 \strokec4 \
+\cf2 \cb3 \strokec2     // Hardware Details for LED matricies\cf4 \cb1 \strokec4 \
+\pard\pardeftab720\partightenfactor0
+\cf5 \cb3 \strokec5 #define\cf4 \strokec4  \cf7 \strokec7 HARDWARE_TYPE\cf4 \strokec4  MD_MAX72XX::FC16_HW\cf2 \strokec2  // what type of LED matrix i have\cf4 \cb1 \strokec4 \
+\cf5 \cb3 \strokec5 #define\cf4 \strokec4  \cf7 \strokec7 MAX_DEVICES\cf4 \strokec4  \cf6 \strokec6 2\cf2 \strokec2  // how many matricies I'm using\cf4 \cb1 \strokec4 \
+\cf5 \cb3 \strokec5 #define\cf4 \strokec4  \cf7 \strokec7 CS_PIN_ONE\cf4 \strokec4  \cf6 \strokec6 7\cf2 \strokec2  // what pin is my CS port hooked to\cf4 \cb1 \strokec4 \
+\pard\pardeftab720\partightenfactor0
+\cf8 \cb3 \strokec8 const\cf4 \strokec4  \cf8 \strokec8 int\cf4 \strokec4  dInPin = \cf6 \strokec6 11\cf4 \strokec4 ;\cf2 \strokec2  // what pin is my DIN hooked to\cf4 \cb1 \strokec4 \
+\cf8 \cb3 \strokec8 const\cf4 \strokec4  \cf8 \strokec8 int\cf4 \strokec4  clkPin = \cf6 \strokec6 13\cf4 \strokec4 ;\cf2 \strokec2  // what pin is my CLK hooked to\cf4 \cb1 \strokec4 \
+\pard\pardeftab720\partightenfactor0
+\cf4 \cb3 MD_Parola myDisplay = \cf7 \strokec7 MD_Parola\cf9 \strokec9 (\cf4 \strokec4 HARDWARE_TYPE, CS_PIN_ONE, MAX_DEVICES\cf9 \strokec9 )\cf4 \strokec4 ;\cf2 \strokec2  // Create a new instance of the MD_MAX72XX class to represent my matrix display\cf4 \cb1 \strokec4 \
+\pard\pardeftab720\partightenfactor0
+\cf2 \cb3 \strokec2     // Scrolling parameters\cf4 \cb1 \strokec4 \
+\pard\pardeftab720\partightenfactor0
+\cf8 \cb3 \strokec8 uint8_t\cf4 \strokec4  scrollSpeed = \cf6 \strokec6 65\cf4 \strokec4 ;\cf2 \strokec2  // delays frames by set number (higher number slows the pace of the scroll)\cf4 \cb1 \strokec4 \
+\cf8 \cb3 \strokec8 textEffect_t\cf4 \strokec4  scrollEffect = PA_SCROLL_LEFT;\cf2 \strokec2  // scrolling left (instead of right)\cf4 \cb1 \strokec4 \
+\cf8 \cb3 \strokec8 textPosition_t\cf4 \strokec4  scrollAlign = PA_LEFT;\cf2 \strokec2  // orient our text to the left side of the screen\cf4 \cb1 \strokec4 \
+\cf8 \cb3 \strokec8 uint16_t\cf4 \strokec4  scrollPause = \cf6 \strokec6 2000\cf4 \strokec4 ;\cf2 \strokec2  // pause in milliseconds after scroll finishes\cf4 \cb1 \strokec4 \
+\cf8 \cb3 \strokec8 char\cf4 \strokec4  \cf7 \strokec7 newTime\cf4 \strokec4 [\cf6 \strokec6 10\cf4 \strokec4 ] = \cf9 \strokec9 \{\cf4 \strokec4  \cf6 \strokec6 ""\cf4 \strokec4  \cf9 \strokec9 \}\cf4 \strokec4 ;\cf2 \strokec2  // Array that holds the string that holds the message to play on the screen\cf4 \cb1 \strokec4 \
+\pard\pardeftab720\partightenfactor0
+\cf4 \cb3 String finalTime;\cf2 \strokec2  // String that holds the message to play on the screen\cf4 \cb1 \strokec4 \
+\
+\pard\pardeftab720\partightenfactor0
+\cf2 \cb3 \strokec2 // ALARM VARIABLES\cf4 \cb1 \strokec4 \
+\pard\pardeftab720\partightenfactor0
+\cf8 \cb3 \strokec8 const\cf4 \strokec4  \cf8 \strokec8 int\cf4 \strokec4  speakerPin = A4;\cf2 \strokec2  // pin attached to the speaker for the alarm\cf4 \cb1 \strokec4 \
+\
+\pard\pardeftab720\partightenfactor0
+\cf2 \cb3 \strokec2 // BUTTON GAME VARIABLES\cf4 \cb1 \strokec4 \
+\cf2 \cb3 \strokec2     //LED pins\cf4 \cb1 \strokec4 \
+\pard\pardeftab720\partightenfactor0
+\cf8 \cb3 \strokec8 const\cf4 \strokec4  \cf8 \strokec8 int\cf4 \strokec4  LEDOnePin = A2;\cf2 \strokec2  // left top LED\cf4 \cb1 \strokec4 \
+\cf8 \cb3 \strokec8 const\cf4 \strokec4  \cf8 \strokec8 int\cf4 \strokec4  LEDTwoPin = A5;\cf2 \strokec2  // right top LED\cf4 \cb1 \strokec4 \
+\cf8 \cb3 \strokec8 const\cf4 \strokec4  \cf8 \strokec8 int\cf4 \strokec4  LEDThreePin = A1;\cf2 \strokec2  // right bottom LED\cf4 \cb1 \strokec4 \
+\cf8 \cb3 \strokec8 const\cf4 \strokec4  \cf8 \strokec8 int\cf4 \strokec4  LEDFourPin = \cf6 \strokec6 10\cf4 \strokec4 ;\cf2 \strokec2  // back on bottom LED\cf4 \cb1 \strokec4 \
+\cf8 \cb3 \strokec8 const\cf4 \strokec4  \cf8 \strokec8 int\cf4 \strokec4  LEDFivePin = \cf6 \strokec6 2\cf4 \strokec4 ;\cf2 \strokec2  // back top LED\cf4 \cb1 \strokec4 \
+\cf8 \cb3 \strokec8 const\cf4 \strokec4  \cf8 \strokec8 int\cf4 \strokec4  LEDPowerPin = A0;\cf2 \strokec2   // turns on when Arduino gets power (green one)\cf4 \cb1 \strokec4 \
+\pard\pardeftab720\partightenfactor0
+\cf2 \cb3 \strokec2     // button pins\cf4 \cb1 \strokec4 \
+\pard\pardeftab720\partightenfactor0
+\cf8 \cb3 \strokec8 const\cf4 \strokec4  \cf8 \strokec8 int\cf4 \strokec4  buttonOnePin = \cf6 \strokec6 9\cf4 \strokec4 ;\cf2 \strokec2  // button on the left side of the box on top of the side\cf4 \cb1 \strokec4 \
+\cf8 \cb3 \strokec8 const\cf4 \strokec4  \cf8 \strokec8 int\cf4 \strokec4  buttonTwoPin = \cf6 \strokec6 8\cf4 \strokec4 ;\cf2 \strokec2  // right side (from front) on top\cf4 \cb1 \strokec4 \
+\cf8 \cb3 \strokec8 const\cf4 \strokec4  \cf8 \strokec8 int\cf4 \strokec4  buttonThreePin = \cf6 \strokec6 6\cf4 \strokec4 ;\cf2 \strokec2  // right side on bottom\cf4 \cb1 \strokec4 \
+\cf8 \cb3 \strokec8 const\cf4 \strokec4  \cf8 \strokec8 int\cf4 \strokec4  buttonFourPin = \cf6 \strokec6 5\cf4 \strokec4 ;\cf2 \strokec2  // back wall on bottom\cf4 \cb1 \strokec4 \
+\cf8 \cb3 \strokec8 const\cf4 \strokec4  \cf8 \strokec8 int\cf4 \strokec4  buttonFivePin = \cf6 \strokec6 4\cf4 \strokec4 ;\cf2 \strokec2  // Back wall on top\cf4 \cb1 \strokec4 \
+\cf8 \cb3 \strokec8 const\cf4 \strokec4  \cf8 \strokec8 int\cf4 \strokec4  buttonHourPin = \cf6 \strokec6 3\cf4 \strokec4 ;\cf2 \strokec2  // top of box on the left (determines the hour of the alarm)\cf4 \cb1 \strokec4 \
+\cf8 \cb3 \strokec8 const\cf4 \strokec4  \cf8 \strokec8 int\cf4 \strokec4  buttonMinutePin = \cf6 \strokec6 12\cf4 \strokec4 ;\cf2 \strokec2  // top of box on the right (determines the minutes of the alarm)\cf4 \cb1 \strokec4 \
+\pard\pardeftab720\partightenfactor0
+\cf2 \cb3 \strokec2     // stores the minute and hour of chosen alarm\cf4 \cb1 \strokec4 \
+\pard\pardeftab720\partightenfactor0
+\cf8 \cb3 \strokec8 int\cf4 \strokec4  minuteAlarm = \cf6 \strokec6 0\cf4 \strokec4 ;\cb1 \
+\cf8 \cb3 \strokec8 int\cf4 \strokec4  hourAlarm = \cf6 \strokec6 0\cf4 \strokec4 ;\cb1 \
+\pard\pardeftab720\partightenfactor0
+\cf2 \cb3 \strokec2     // version of the workaround used in candle2 and PushingTheRightButtons for typedefs\cf4 \cb1 \strokec4 \
+\cf2 \cb3 \strokec2     //stores the switch changes\cf4 \cb1 \strokec4 \
+\pard\pardeftab720\partightenfactor0
+\cf4 \cb3 typedef \cf8 \strokec8 struct\cf4 \strokec4  switchTracker \cf9 \strokec9 \{\cf4 \cb1 \strokec4 \
+\cb3   byte pin;\cf2 \strokec2  // pin we are working on\cf4 \cb1 \strokec4 \
+\cb3   \cf8 \strokec8 int\cf4 \strokec4  prevVolt;\cf2 \strokec2  // last voltage reading\cf4 \cb1 \strokec4 \
+\cb3   \cf8 \strokec8 long\cf4 \strokec4  timeChange;\cf2 \strokec2  // last time the voltage input changed\cf4 \cb1 \strokec4 \
+\cb3   byte switchState;\cf2 \strokec2  // debounced state of the switch?\cf4 \cb1 \strokec4 \
+\pard\pardeftab720\partightenfactor0
+\cf9 \cb3 \strokec9 \}\cf4 \strokec4  switchTrack;\cb1 \
+\pard\pardeftab720\partightenfactor0
+\cf2 \cb3 \strokec2     // tracks the switch changes\cf4 \cb1 \strokec4 \
+\cf2 \cb3 \strokec2     // also taken from candle2 script and Pushing the Right Buttons\cf4 \cb1 \strokec4 \
+\pard\pardeftab720\partightenfactor0
+\cf8 \cb3 \strokec8 void\cf4 \strokec4  \cf7 \strokec7 initSwitchTrack\cf9 \strokec9 (\cf8 \strokec8 struct\cf4 \strokec4  switchTracker \cf8 \strokec8 &\cf9 \strokec9 sw\cf4 \strokec4 , \cf8 \strokec8 int\cf4 \strokec4  \cf9 \strokec9 swPin)\cf4 \strokec4  \cf9 \strokec9 \{\cf4 \strokec4   \cb1 \
+\pard\pardeftab720\partightenfactor0
+\cf4 \cb3   \cf7 \strokec7 pinMode\cf9 \strokec9 (\cf4 \strokec4 swPin, INPUT\cf9 \strokec9 )\cf4 \strokec4 ;\cb1 \
+\cb3   \cf7 \strokec7 sw\cf4 \strokec4 .\cf7 \strokec7 prevVolt\cf4 \strokec4  = \cf7 \strokec7 digitalRead\cf9 \strokec9 (\cf4 \strokec4 swPin\cf9 \strokec9 )\cf4 \strokec4 ;\cb1 \
+\cb3   \cf7 \strokec7 sw\cf4 \strokec4 .\cf7 \strokec7 timeChange\cf4 \strokec4  = \cf7 \strokec7 millis\cf9 \strokec9 ()\cf4 \strokec4 ;\cb1 \
+\cb3   \cf7 \strokec7 sw\cf4 \strokec4 .\cf7 \strokec7 pin\cf4 \strokec4  = swPin;\cb1 \
+\cb3   \cf7 \strokec7 sw\cf4 \strokec4 .\cf7 \strokec7 switchState\cf4 \strokec4  = \cf7 \strokec7 sw\cf4 \strokec4 .\cf7 \strokec7 prevVolt\cf4 \strokec4 ;\cb1 \
+\pard\pardeftab720\partightenfactor0
+\cf9 \cb3 \strokec9 \}\cf4 \cb1 \strokec4 \
+\pard\pardeftab720\partightenfactor0
+\cf2 \cb3 \strokec2     // tracking and debounce information for each button\cf4 \cb1 \strokec4 \
+\pard\pardeftab720\partightenfactor0
+\cf4 \cb3 switchTrack buttonInputMinute;\cb1 \
+\cb3 switchTrack buttonInputHour; \cb1 \
+\cb3 switchTrack buttonInputFive;\cb1 \
+\cb3 switchTrack buttonInputFour;\cb1 \
+\cb3 switchTrack buttonInputThree;\cb1 \
+\cb3 switchTrack buttonInputTwo;\cb1 \
+\cb3 switchTrack buttonInputOne;\cb1 \
+\
+\pard\pardeftab720\partightenfactor0
+\cf2 \cb3 \strokec2 //MAIN METHODS\cf4 \cb1 \strokec4 \
+\pard\pardeftab720\partightenfactor0
+\cf8 \cb3 \strokec8 void\cf4 \strokec4  \cf7 \strokec7 setup\cf9 \strokec9 ()\cf4 \strokec4  \cf9 \strokec9 \{\cf4 \cb1 \strokec4 \
+\pard\pardeftab720\partightenfactor0
+\cf4 \cb3   \cf7 \strokec7 srand\cf9 \strokec9 (\cf7 \strokec7 time\cf9 \strokec9 (\cf6 \strokec6 NULL\cf9 \strokec9 ))\cf4 \strokec4 ;\cf2 \strokec2  // time() returns the time (in seconds) that has passed since Jan 1, 1970. this gives srand() a "random" number to work with\cf4 \cb1 \strokec4 \
+\
+\pard\pardeftab720\partightenfactor0
+\cf2 \cb3 \strokec2   //initializing our buttons into initSwitchTrack so we can moniter when they are pressed\cf4 \cb1 \strokec4 \
+\pard\pardeftab720\partightenfactor0
+\cf4 \cb3   \cf7 \strokec7 initSwitchTrack\cf9 \strokec9 (\cf4 \strokec4 buttonInputMinute, buttonMinutePin\cf9 \strokec9 )\cf4 \strokec4 ;\cb1 \
+\cb3   \cf7 \strokec7 initSwitchTrack\cf9 \strokec9 (\cf4 \strokec4 buttonInputHour, buttonHourPin\cf9 \strokec9 )\cf4 \strokec4 ;\cb1 \
+\cb3   \cf7 \strokec7 initSwitchTrack\cf9 \strokec9 (\cf4 \strokec4 buttonInputFive, buttonFivePin\cf9 \strokec9 )\cf4 \strokec4 ;\cb1 \
+\cb3   \cf7 \strokec7 initSwitchTrack\cf9 \strokec9 (\cf4 \strokec4 buttonInputFour, buttonFourPin\cf9 \strokec9 )\cf4 \strokec4 ;\cb1 \
+\cb3   \cf7 \strokec7 initSwitchTrack\cf9 \strokec9 (\cf4 \strokec4 buttonInputThree, buttonThreePin\cf9 \strokec9 )\cf4 \strokec4 ;\cb1 \
+\cb3   \cf7 \strokec7 initSwitchTrack\cf9 \strokec9 (\cf4 \strokec4 buttonInputTwo, buttonTwoPin\cf9 \strokec9 )\cf4 \strokec4 ;\cb1 \
+\cb3   \cf7 \strokec7 initSwitchTrack\cf9 \strokec9 (\cf4 \strokec4 buttonInputOne, buttonOnePin\cf9 \strokec9 )\cf4 \strokec4 ;\cb1 \
+\
+\pard\pardeftab720\partightenfactor0
+\cf2 \cb3 \strokec2   // set all of our LEDs to output mode so we can control when they light up\cf4 \cb1 \strokec4 \
+\pard\pardeftab720\partightenfactor0
+\cf4 \cb3   \cf7 \strokec7 pinMode\cf9 \strokec9 (\cf4 \strokec4 LEDPowerPin, OUTPUT\cf9 \strokec9 )\cf4 \strokec4 ;\cb1 \
+\cb3   \cf7 \strokec7 pinMode\cf9 \strokec9 (\cf4 \strokec4 LEDOnePin, OUTPUT\cf9 \strokec9 )\cf4 \strokec4 ;\cb1 \
+\cb3   \cf7 \strokec7 pinMode\cf9 \strokec9 (\cf4 \strokec4 LEDTwoPin, OUTPUT\cf9 \strokec9 )\cf4 \strokec4 ;\cb1 \
+\cb3   \cf7 \strokec7 pinMode\cf9 \strokec9 (\cf4 \strokec4 LEDThreePin, OUTPUT\cf9 \strokec9 )\cf4 \strokec4 ;\cb1 \
+\cb3   \cf7 \strokec7 pinMode\cf9 \strokec9 (\cf4 \strokec4 LEDFourPin, OUTPUT\cf9 \strokec9 )\cf4 \strokec4 ;\cb1 \
+\cb3   \cf7 \strokec7 pinMode\cf9 \strokec9 (\cf4 \strokec4 LEDFivePin, OUTPUT\cf9 \strokec9 )\cf4 \strokec4 ;\cb1 \
+\
+\pard\pardeftab720\partightenfactor0
+\cf2 \cb3 \strokec2   // turn on power pin to show that we have power\cf4 \cb1 \strokec4 \
+\pard\pardeftab720\partightenfactor0
+\cf4 \cb3   \cf7 \strokec7 digitalWrite\cf9 \strokec9 (\cf4 \strokec4 LEDPowerPin, HIGH\cf9 \strokec9 )\cf4 \strokec4 ;\cb1 \
+\
+\pard\pardeftab720\partightenfactor0
+\cf2 \cb3 \strokec2   // set the clock to 3pm\cf4 \cb1 \strokec4 \
+\pard\pardeftab720\partightenfactor0
+\cf4 \cb3   \cf7 \strokec7 setTime\cf9 \strokec9 (\cf6 \strokec6 3\cf4 \strokec4 , \cf6 \strokec6 0\cf4 \strokec4 , \cf6 \strokec6 40\cf4 \strokec4 , \cf6 \strokec6 28\cf4 \strokec4 , \cf6 \strokec6 4\cf4 \strokec4 , \cf6 \strokec6 2023\cf9 \strokec9 )\cf4 \strokec4 ;\cf2 \strokec2  // hour, minute, second, day, month, year\cf4 \cb1 \strokec4 \
+\
+\pard\pardeftab720\partightenfactor0
+\cf2 \cb3 \strokec2    // initialize display and scoll-play the time\cf4 \cb1 \strokec4 \
+\pard\pardeftab720\partightenfactor0
+\cf4 \cb3   \cf7 \strokec7 myDisplay\cf4 \strokec4 .\cf7 \strokec7 begin\cf9 \strokec9 ()\cf4 \strokec4 ;\cb1 \
+\cb3   \cf7 \strokec7 myDisplay\cf4 \strokec4 .\cf7 \strokec7 displayText\cf9 \strokec9 (\cf4 \strokec4 newTime, scrollAlign, scrollSpeed, scrollPause, scrollEffect, scrollEffect\cf9 \strokec9 )\cf4 \strokec4 ;\cf2 \strokec2  // displays given newTime message\cf4 \cb1 \strokec4 \
+\pard\pardeftab720\partightenfactor0
+\cf9 \cb3 \strokec9 \}\cf4 \cb1 \strokec4 \
+\
+\pard\pardeftab720\partightenfactor0
+\cf8 \cb3 \strokec8 bool\cf4 \strokec4  holder;\cf2 \strokec2  // this holds the value of buttonPress() for loop() so that we only call buttonPress() once\cf4 \cb1 \strokec4 \
+\cf8 \cb3 \strokec8 void\cf4 \strokec4  \cf7 \strokec7 loop\cf9 \strokec9 ()\cf4 \strokec4  \cf9 \strokec9 \{\cf4 \cb1 \strokec4 \
+\pard\pardeftab720\partightenfactor0
+\cf4 \cb3   holder = \cf7 \strokec7 buttonPress\cf9 \strokec9 ()\cf4 \strokec4 ;\cf2 \strokec2  // Have we pressed the minute or hour button to set an alarm? true or false\cf4 \cb1 \strokec4 \
+\cb3   \cf5 \strokec5 if\cf9 \strokec9 (\cf4 \strokec4 !holder\cf9 \strokec9 )\cf4 \strokec4  \cf9 \strokec9 \{\cf2 \strokec2  // returns true if no button was pressed\cf4 \cb1 \strokec4 \
+\cb3     \cf7 \strokec7 clockRunner\cf9 \strokec9 ()\cf4 \strokec4 ;\cf2 \strokec2  // then runs the current time across the screen\cf4 \cb1 \strokec4 \
+\cb3   \cf9 \strokec9 \}\cf4 \strokec4  \cf5 \strokec5 else\cf4 \strokec4  \cf5 \strokec5 if\cf9 \strokec9 (\cf4 \strokec4 holder\cf9 \strokec9 )\{\cf2 \strokec2  // if one of the alarm buttons WAS pressed\cf4 \cb1 \strokec4 \
+\cb3     \cf7 \strokec7 matrixAlarmSet\cf9 \strokec9 ()\cf4 \strokec4 ;\cf2 \strokec2  // then start the function controlling the alarm settings\cf4 \cb1 \strokec4 \
+\cb3   \cf9 \strokec9 \}\cf4 \cb1 \strokec4 \
+\pard\pardeftab720\partightenfactor0
+\cf9 \cb3 \strokec9 \}\cf4 \cb1 \strokec4 \
+\
+\pard\pardeftab720\partightenfactor0
+\cf2 \cb3 \strokec2 //OTHER METHODS\cf4 \cb1 \strokec4 \
+\pard\pardeftab720\partightenfactor0
+\cf8 \cb3 \strokec8 bool\cf4 \strokec4  marked = \cf6 \strokec6 false\cf4 \strokec4 ;\cf2 \strokec2  // this bool moniters if our alarm has gone off yet or not to prevent it from going off multiple times after the buttonGame() is finished\cf4 \cb1 \strokec4 \
+\cf8 \cb3 \strokec8 void\cf4 \strokec4  \cf7 \strokec7 clockRunner\cf9 \strokec9 ()\{\cf2 \strokec2  // runs the currentTime across the screen\cf4 \cb1 \strokec4 \
+\pard\pardeftab720\partightenfactor0
+\cf2 \cb3 \strokec2   // checking if we need to run the alarm system\cf4 \cb1 \strokec4 \
+\pard\pardeftab720\partightenfactor0
+\cf4 \cb3   \cf5 \strokec5 if\cf4 \strokec4  \cf9 \strokec9 (\cf7 \strokec7 myDisplay\cf4 \strokec4 .\cf7 \strokec7 displayAnimate\cf9 \strokec9 ())\cf4 \strokec4  \cf9 \strokec9 \{\cf2 \strokec2  // returns true if we have completed our last animation\cf4 \cb1 \strokec4 \
+\cb3     \cf5 \strokec5 if\cf9 \strokec9 (\cf7 \strokec7 minute\cf9 \strokec9 ()\cf4 \strokec4  == minuteAlarm && \cf7 \strokec7 hour\cf9 \strokec9 ()\cf4 \strokec4  == hourAlarm\cf9 \strokec9 )\{\cf2 \strokec2  // if the current time equals the set alarm time\cf4 \cb1 \strokec4 \
+\cb3       \cf5 \strokec5 if\cf9 \strokec9 (\cf4 \strokec4 !marked\cf9 \strokec9 )\{\cf2 \strokec2  // and if we have not already played the alarm\cf4 \cb1 \strokec4 \
+\cb3         \cf7 \strokec7 buttonGame\cf9 \strokec9 ()\cf4 \strokec4 ;\cf2 \strokec2  // trigger the alarm system and the buttonGame()\cf4 \cb1 \strokec4 \
+\cb3         marked = \cf6 \strokec6 true\cf4 \strokec4 ;\cf2 \strokec2  // note that we have triggered the alarm system for this alarm time\cf4 \cb1 \strokec4 \
+\cb3       \cf9 \strokec9 \}\cf4 \cb1 \strokec4 \
+\cb3     \cf9 \strokec9 \}\cf4 \strokec4  \cf5 \strokec5 else\cf4 \strokec4  \cf9 \strokec9 \{\cf4 \cb1 \strokec4 \
+\cb3       marked = \cf6 \strokec6 false\cf4 \strokec4 ;\cf2 \strokec2  // otherwise if current time != to alarm time, set marked = to false\cf4 \cb1 \strokec4 \
+\cb3     \cf9 \strokec9 \}\cf4 \cb1 \strokec4 \
+\pard\pardeftab720\partightenfactor0
+\cf2 \cb3 \strokec2     //converting the current time into a String for displaying\cf4 \cb1 \strokec4 \
+\pard\pardeftab720\partightenfactor0
+\cf4 \cb3     \cf5 \strokec5 if\cf9 \strokec9 (\cf7 \strokec7 minute\cf9 \strokec9 ()\cf4 \strokec4  < \cf6 \strokec6 10\cf9 \strokec9 )\{\cf2 \strokec2  // if the minute section of the clock holds a value less than 10\cf4 \cb1 \strokec4 \
+\cb3       finalTime = \cf7 \strokec7 String\cf9 \strokec9 (\cf7 \strokec7 hour\cf9 \strokec9 ())\cf4 \strokec4  + \cf6 \strokec6 ":0"\cf4 \strokec4  + \cf7 \strokec7 String\cf9 \strokec9 (\cf7 \strokec7 minute\cf9 \strokec9 ())\cf4 \strokec4 ;\cf2 \strokec2  // then add a zero before the minute value (aesthetic only)\cf4 \cb1 \strokec4 \
+\cb3     \cf9 \strokec9 \}\cf4 \strokec4  \cf5 \strokec5 else\cf4 \strokec4  \cf9 \strokec9 \{\cf2 \strokec2  // otherwise\cf4 \cb1 \strokec4 \
+\cb3       finalTime = \cf7 \strokec7 String\cf9 \strokec9 (\cf7 \strokec7 hour\cf9 \strokec9 ())\cf4 \strokec4  + \cf6 \strokec6 ":"\cf4 \strokec4  + \cf7 \strokec7 String\cf9 \strokec9 (\cf7 \strokec7 minute\cf9 \strokec9 ())\cf4 \strokec4 ;\cf2 \strokec2  // just convert the current time into a String\cf4 \cb1 \strokec4 \
+\cb3     \cf9 \strokec9 \}\cf4 \cb1 \strokec4 \
+\pard\pardeftab720\partightenfactor0
+\cf2 \cb3 \strokec2     //display the current time\cf4 \cb1 \strokec4 \
+\pard\pardeftab720\partightenfactor0
+\cf4 \cb3     \cf7 \strokec7 strcpy\cf9 \strokec9 (\cf4 \strokec4 newTime, \cf7 \strokec7 finalTime\cf4 \strokec4 .\cf7 \strokec7 c_str\cf9 \strokec9 ())\cf4 \strokec4 ;\cf2 \strokec2  // copies the string with current time into our newTime[] array for presentation\cf4 \cb1 \strokec4 \
+\cb3     \cf7 \strokec7 myDisplay\cf4 \strokec4 .\cf7 \strokec7 displayReset\cf9 \strokec9 ()\cf4 \strokec4 ;\cf2 \strokec2  // reset the display to nothing\cf4 \cb1 \strokec4 \
+\cb3     \cf7 \strokec7 myDisplay\cf4 \strokec4 .\cf7 \strokec7 displayText\cf9 \strokec9 (\cf4 \strokec4 newTime, scrollAlign, scrollSpeed, scrollPause, scrollEffect, scrollEffect\cf9 \strokec9 )\cf4 \strokec4 ;\cf2 \strokec2  // displays given newTime message with our saved scrolling settings\cf4 \cb1 \strokec4 \
+\cb3   \cf9 \strokec9 \}\cf4 \cb1 \strokec4 \
+\pard\pardeftab720\partightenfactor0
+\cf9 \cb3 \strokec9 \}\cf4 \cb1 \strokec4 \
+\
+\pard\pardeftab720\partightenfactor0
+\cf8 \cb3 \strokec8 int\cf4 \strokec4  tracker = -\cf6 \strokec6 1\cf4 \strokec4 ;\cf2 \strokec2  // setting tracker equal to a value that won't trigger any if statements\cf4 \cb1 \strokec4 \
+\cf8 \cb3 \strokec8 bool\cf4 \strokec4  \cf7 \strokec7 buttonPress\cf9 \strokec9 ()\{\cf2 \strokec2  // this function tracks if the hour or minute buttons were pressed and if so, which one\cf4 \cb1 \strokec4 \
+\pard\pardeftab720\partightenfactor0
+\cf4 \cb3   \cf5 \strokec5 if\cf4 \strokec4  \cf9 \strokec9 (\cf7 \strokec7 switchChange\cf9 \strokec9 (\cf4 \strokec4 buttonInputMinute\cf9 \strokec9 )\cf4 \strokec4  && \cf7 \strokec7 buttonInputMinute\cf4 \strokec4 .\cf7 \strokec7 switchState\cf4 \strokec4  == \cf6 \strokec6 1\cf9 \strokec9 )\{\cf2 \strokec2  // if the minute button was pressed\cf4 \cb1 \strokec4 \
+\cb3     tracker = \cf6 \strokec6 0\cf4 \strokec4 ;\cf2 \strokec2  // mark tracker as 0 and return true as in: a button was pressed\cf4 \cb1 \strokec4 \
+\cb3     \cf5 \strokec5 return\cf4 \strokec4  \cf6 \strokec6 true\cf4 \strokec4 ;\cb1 \
+\cb3   \cf9 \strokec9 \}\cf4 \strokec4  \cf5 \strokec5 else\cf4 \strokec4  \cf5 \strokec5 if\cf4 \strokec4  \cf9 \strokec9 (\cf7 \strokec7 switchChange\cf9 \strokec9 (\cf4 \strokec4 buttonInputHour\cf9 \strokec9 )\cf4 \strokec4  && \cf7 \strokec7 buttonInputHour\cf4 \strokec4 .\cf7 \strokec7 switchState\cf4 \strokec4  == \cf6 \strokec6 1\cf9 \strokec9 )\cf4 \strokec4  \cf9 \strokec9 \{\cf2 \strokec2  // else if the hour button was pressed\cf4 \cb1 \strokec4 \
+\cb3     tracker = \cf6 \strokec6 1\cf4 \strokec4 ;\cf2 \strokec2  // mark tracker as 1 and return true as in: a button was pressed\cf4 \cb1 \strokec4 \
+\cb3     \cf5 \strokec5 return\cf4 \strokec4  \cf6 \strokec6 true\cf4 \strokec4 ;\cb1 \
+\cb3   \cf9 \strokec9 \}\cf4 \strokec4  \cf5 \strokec5 else\cf4 \strokec4  \cf9 \strokec9 \{\cf4 \cb1 \strokec4 \
+\cb3     \cf5 \strokec5 return\cf4 \strokec4  \cf6 \strokec6 false\cf4 \strokec4 ;\cf2 \strokec2  // if neither of those were pressed then return false: no button was pressed\cf4 \cb1 \strokec4 \
+\cb3   \cf9 \strokec9 \}\cf4 \cb1 \strokec4 \
+\pard\pardeftab720\partightenfactor0
+\cf9 \cb3 \strokec9 \}\cf4 \cb1 \strokec4 \
+\
+\pard\pardeftab720\partightenfactor0
+\cf4 \cb3 String minuteAlarmSet = \cf6 \strokec6 ""\cf4 \strokec4 ;\cf2 \strokec2  // holds the currently saved alarm time for displaying on the screen\cf4 \cb1 \strokec4 \
+\pard\pardeftab720\partightenfactor0
+\cf8 \cb3 \strokec8 void\cf4 \strokec4  \cf7 \strokec7 matrixAlarmSet\cf9 \strokec9 ()\{\cf2 \strokec2  // allows the user to set an alarm with the hour and minute buttons\cf4 \cb1 \strokec4 \
+\pard\pardeftab720\partightenfactor0
+\cf2 \cb3 \strokec2   //minute button moniter\cf4 \cb1 \strokec4 \
+\pard\pardeftab720\partightenfactor0
+\cf4 \cb3   \cf5 \strokec5 if\cf9 \strokec9 (\cf4 \strokec4 tracker == \cf6 \strokec6 0\cf9 \strokec9 )\{\cf2 \strokec2  // if the minute button was pressed\cf4 \cb1 \strokec4 \
+\cb3     minuteAlarm = minuteAlarm + \cf6 \strokec6 1\cf4 \strokec4 ;\cf2 \strokec2  // add one to the current minutes part of set alarm time\cf4 \cb1 \strokec4 \
+\cb3     \cf5 \strokec5 if\cf9 \strokec9 (\cf4 \strokec4 minuteAlarm >\cf6 \strokec6 59\cf9 \strokec9 )\{\cf2 \strokec2 // if minutes gets to value 60 then round it back down to 0\cf4 \cb1 \strokec4 \
+\cb3       minuteAlarm = \cf6 \strokec6 0\cf4 \strokec4 ;\cb1 \
+\cb3     \cf9 \strokec9 \}\cf4 \cb1 \strokec4 \
+\cb3   \cf9 \strokec9 \}\cf4 \cb1 \strokec4 \
+\pard\pardeftab720\partightenfactor0
+\cf2 \cb3 \strokec2   //hour button moniter\cf4 \cb1 \strokec4 \
+\pard\pardeftab720\partightenfactor0
+\cf4 \cb3   \cf5 \strokec5 if\cf9 \strokec9 (\cf4 \strokec4 tracker == \cf6 \strokec6 1\cf9 \strokec9 )\{\cf2 \strokec2  // if the hour button was pressed\cf4 \cb1 \strokec4 \
+\cb3     hourAlarm = hourAlarm + \cf6 \strokec6 1\cf4 \strokec4 ;\cf2 \strokec2  // add 1 to the hour part of set alarm time\cf4 \cb1 \strokec4 \
+\cb3     \cf5 \strokec5 if\cf9 \strokec9 (\cf4 \strokec4 hourAlarm > \cf6 \strokec6 12\cf9 \strokec9 )\{\cf2 \strokec2  // if hours reaches value 13 then round it back down to 1\cf4 \cb1 \strokec4 \
+\cb3       hourAlarm = \cf6 \strokec6 1\cf4 \strokec4 ;\cb1 \
+\cb3     \cf9 \strokec9 \}\cf4 \cb1 \strokec4 \
+\cb3   \cf9 \strokec9 \}\cf4 \cb1 \strokec4 \
+\pard\pardeftab720\partightenfactor0
+\cf2 \cb3 \strokec2   // converting our set alarm time into a string for displaying on the LED matricies\cf4 \cb1 \strokec4 \
+\pard\pardeftab720\partightenfactor0
+\cf4 \cb3   \cf5 \strokec5 if\cf9 \strokec9 (\cf4 \strokec4 minuteAlarm < \cf6 \strokec6 10\cf9 \strokec9 )\{\cf2 \strokec2  // if the minutes part of our set alarm is less than 10\cf4 \cb1 \strokec4 \
+\cb3     minuteAlarmSet = \cf6 \strokec6 "   "\cf4 \strokec4  + \cf7 \strokec7 String\cf9 \strokec9 (\cf4 \strokec4 hourAlarm\cf9 \strokec9 )\cf4 \strokec4  + \cf6 \strokec6 ":0"\cf4 \strokec4  + \cf7 \strokec7 String\cf9 \strokec9 (\cf4 \strokec4 minuteAlarm\cf9 \strokec9 )\cf4 \strokec4 ;\cf2 \strokec2  // add a zero before the mintute value (aesthetic only)\cf4 \cb1 \strokec4 \
+\cb3   \cf9 \strokec9 \}\cf4 \strokec4  \cf5 \strokec5 else\cf4 \strokec4  \cf9 \strokec9 \{\cf2 \strokec2  // otherwise\cf4 \cb1 \strokec4 \
+\cb3     minuteAlarmSet = \cf6 \strokec6 "   "\cf4 \strokec4  + \cf7 \strokec7 String\cf9 \strokec9 (\cf4 \strokec4 hourAlarm\cf9 \strokec9 )\cf4 \strokec4  + \cf6 \strokec6 ":"\cf4 \strokec4  + \cf7 \strokec7 String\cf9 \strokec9 (\cf4 \strokec4 minuteAlarm\cf9 \strokec9 )\cf4 \strokec4 ;\cf2 \strokec2  // convert the current time to string regularly\cf4 \cb1 \strokec4 \
+\cb3   \cf9 \strokec9 \}\cf4 \cb1 \strokec4 \
+\cb3   tracker = -\cf6 \strokec6 1\cf4 \strokec4 ;\cf2 \strokec2  // reset tracker back to -1 so no if statements accidentally go off\cf4 \cb1 \strokec4 \
+\
+\pard\pardeftab720\partightenfactor0
+\cf2 \cb3 \strokec2   //display the set alarm time so the user can check it\cf4 \cb1 \strokec4 \
+\pard\pardeftab720\partightenfactor0
+\cf4 \cb3   \cf7 \strokec7 strcpy\cf9 \strokec9 (\cf4 \strokec4 newTime, \cf7 \strokec7 minuteAlarmSet\cf4 \strokec4 .\cf7 \strokec7 c_str\cf9 \strokec9 ())\cf4 \strokec4 ;\cf2 \strokec2  // copies the string with current time into our newTime array for presentation\cf4 \cb1 \strokec4 \
+\cb3   \cf7 \strokec7 myDisplay\cf4 \strokec4 .\cf7 \strokec7 displayReset\cf9 \strokec9 ()\cf4 \strokec4 ;\cf2 \strokec2  // reset the display to nothing\cf4 \cb1 \strokec4 \
+\cb3   \cf7 \strokec7 myDisplay\cf4 \strokec4 .\cf7 \strokec7 displayText\cf9 \strokec9 (\cf4 \strokec4 newTime, scrollAlign, scrollSpeed, scrollPause, scrollEffect, scrollEffect\cf9 \strokec9 )\cf4 \strokec4 ;\cf2 \strokec2  // displays given newTime message\cf4 \cb1 \strokec4 \
+\cb3   \cf5 \strokec5 return\cf4 \strokec4 ;\cb1 \
+\pard\pardeftab720\partightenfactor0
+\cf9 \cb3 \strokec9 \}\cf4 \cb1 \strokec4 \
+\
+\pard\pardeftab720\partightenfactor0
+\cf2 \cb3 \strokec2 // this method was also taken from candle2 and PushingtheRightButtons\cf4 \cb1 \strokec4 \
+\cf2 \cb3 \strokec2 // it tracks if one of our buttons has switched values\cf4 \cb1 \strokec4 \
+\pard\pardeftab720\partightenfactor0
+\cf4 \cb3 boolean \cf7 \strokec7 switchChange\cf9 \strokec9 (\cf8 \strokec8 struct\cf4 \strokec4  switchTracker \cf8 \strokec8 &\cf9 \strokec9 sw)\cf4 \strokec4  \cf9 \strokec9 \{\cf4 \strokec4  \cb1 \
+\cb3   \cf8 \strokec8 const\cf4 \strokec4  \cf8 \strokec8 long\cf4 \strokec4  debounceTime = \cf6 \strokec6 100\cf4 \strokec4 ;\cf2 \strokec2  // switch must stay stable this long (in msec) to register\cf4 \cb1 \strokec4 \
+\cb3   boolean result = \cf6 \strokec6 false\cf4 \strokec4 ;\cf2 \strokec2  // default to no change until we find out otherwise\cf4 \cb1 \strokec4 \
+\cb3   \cf8 \strokec8 int\cf4 \strokec4  reading = \cf7 \strokec7 digitalRead\cf9 \strokec9 (\cf7 \strokec7 sw\cf4 \strokec4 .\cf7 \strokec7 pin\cf9 \strokec9 )\cf4 \strokec4 ;\cf2 \strokec2  // get the current raw reading from the switch\cf4 \cb1 \strokec4 \
+\
+\pard\pardeftab720\partightenfactor0
+\cf2 \cb3 \strokec2   // if the raw reading has changed (by noise or actual press/release) reset change time to now\cf4 \cb1 \strokec4 \
+\pard\pardeftab720\partightenfactor0
+\cf4 \cb3   \cf5 \strokec5 if\cf4 \strokec4  \cf9 \strokec9 (\cf4 \strokec4 reading != \cf7 \strokec7 sw\cf4 \strokec4 .\cf7 \strokec7 prevVolt\cf9 \strokec9 )\cf4 \strokec4  \cf7 \strokec7 sw\cf4 \strokec4 .\cf7 \strokec7 timeChange\cf4 \strokec4  = \cf7 \strokec7 millis\cf9 \strokec9 ()\cf4 \strokec4 ;\cb1 \
+\cb3   \cf7 \strokec7 sw\cf4 \strokec4 .\cf7 \strokec7 prevVolt\cf4 \strokec4  = reading;\cb1 \
+\cb3   \cb1 \
+\cb3   \cf5 \strokec5 if\cf4 \strokec4  \cf9 \strokec9 ((\cf7 \strokec7 millis\cf9 \strokec9 ()\cf4 \strokec4  - \cf7 \strokec7 sw\cf4 \strokec4 .\cf7 \strokec7 timeChange\cf9 \strokec9 )\cf4 \strokec4  > debounceTime\cf9 \strokec9 )\cf4 \strokec4  \cf9 \strokec9 \{\cf2 \strokec2  // if time since the last change is longer than required\cf4 \cb1 \strokec4 \
+\cb3     result = \cf9 \strokec9 (\cf4 \strokec4 reading != \cf7 \strokec7 sw\cf4 \strokec4 .\cf7 \strokec7 switchState\cf9 \strokec9 )\cf4 \strokec4 ;\cf2 \strokec2  // note whether we are changing\cf4 \cb1 \strokec4 \
+\cb3     \cf7 \strokec7 sw\cf4 \strokec4 .\cf7 \strokec7 switchState\cf4 \strokec4  = reading;\cf2 \strokec2  // in any case the value has been stable and so the reported state should now match the current raw reading\cf4 \cb1 \strokec4 \
+\cb3   \cf9 \strokec9 \}\cf4 \cb1 \strokec4 \
+\cb3   \cf5 \strokec5 return\cf4 \strokec4  result;\cf2 \strokec2  // return true if the button switched states\cf4 \cb1 \strokec4 \
+\pard\pardeftab720\partightenfactor0
+\cf9 \cb3 \strokec9 \}\cf4 \cb1 \strokec4 \
+\
+\
+\pard\pardeftab720\partightenfactor0
+\cf8 \cb3 \strokec8 int\cf4 \strokec4  count;\cf2 \strokec2  // how many buttons in the game sequence\cf4 \cb1 \strokec4 \
+\cf8 \cb3 \strokec8 int\cf4 \strokec4  randy;\cf2 \strokec2  // our random number to dictate which button plays next\cf4 \cb1 \strokec4 \
+\cf8 \cb3 \strokec8 void\cf4 \strokec4  \cf7 \strokec7 buttonGame\cf9 \strokec9 ()\{\cf2 \strokec2  // this method controls the alarm and buttonGame that plays when the current time = alarm time\cf4 \cb1 \strokec4 \
+\pard\pardeftab720\partightenfactor0
+\cf4 \cb3   count = \cf6 \strokec6 7\cf4 \strokec4 ;\cf2 \strokec2  // every game plays 7 buttons in a row\cf4 \cb1 \strokec4 \
+\cb3   \cf5 \strokec5 while\cf9 \strokec9 (\cf4 \strokec4 count != \cf6 \strokec6 0\cf9 \strokec9 )\{\cf2 \strokec2  // while we still have buttons to play with\cf4 \cb1 \strokec4 \
+\cb3     randy = \cf9 \strokec9 (\cf7 \strokec7 rand\cf9 \strokec9 ()\cf4 \strokec4  % \cf6 \strokec6 5\cf9 \strokec9 )\cf4 \strokec4  + \cf6 \strokec6 1\cf4 \strokec4 ;\cf2 \strokec2  // generate a random int between 1 and 5\cf4 \cb1 \strokec4 \
+\cb3     \cf5 \strokec5 if\cf9 \strokec9 (\cf4 \strokec4 randy == \cf6 \strokec6 1\cf9 \strokec9 )\{\cf2 \strokec2  // if that number was 1\cf4 \cb1 \strokec4 \
+\cb3       \cf7 \strokec7 digitalWrite\cf9 \strokec9 (\cf4 \strokec4 LEDOnePin, HIGH\cf9 \strokec9 )\cf4 \strokec4 ;\cf2 \strokec2  // turn on the first LED\cf4 \cb1 \strokec4 \
+\cb3       \cf5 \strokec5 while\cf9 \strokec9 (\cf7 \strokec7 digitalRead\cf9 \strokec9 (\cf4 \strokec4 buttonOnePin\cf9 \strokec9 )\cf4 \strokec4  == \cf6 \strokec6 0\cf9 \strokec9 )\{\cf2 \strokec2  // until that associated first button is pressed\cf4 \cb1 \strokec4 \
+\cb3         \cf7 \strokec7 tone\cf9 \strokec9 (\cf4 \strokec4 speakerPin, \cf6 \strokec6 500\cf4 \strokec4 , \cf6 \strokec6 500\cf9 \strokec9 )\cf4 \strokec4 ;\cf2 \strokec2  // play a low tone on the speaker as an alarm\cf4 \cb1 \strokec4 \
+\cb3       \cf9 \strokec9 \}\cf4 \cb1 \strokec4 \
+\cb3       \cf7 \strokec7 digitalWrite\cf9 \strokec9 (\cf4 \strokec4 LEDOnePin, LOW\cf9 \strokec9 )\cf4 \strokec4 ;\cf2 \strokec2  // once that button is pressed turn off the LED\cf4 \cb1 \strokec4 \
+\cb3       \cf7 \strokec7 delay\cf9 \strokec9 (\cf6 \strokec6 500\cf9 \strokec9 )\cf4 \strokec4 ;\cf2 \strokec2  // and wait a half second so we don't move too fast\cf4 \cb1 \strokec4 \
+\cb3     \cf9 \strokec9 \}\cf4 \strokec4  \cf5 \strokec5 else\cf4 \strokec4  \cf5 \strokec5 if\cf9 \strokec9 (\cf4 \strokec4 randy == \cf6 \strokec6 2\cf9 \strokec9 )\{\cf2 \strokec2  // if the random number generated was 2\cf4 \cb1 \strokec4 \
+\cb3       \cf7 \strokec7 digitalWrite\cf9 \strokec9 (\cf4 \strokec4 LEDTwoPin, HIGH\cf9 \strokec9 )\cf4 \strokec4 ;\cf2 \strokec2  // tun on LED 2\cf4 \cb1 \strokec4 \
+\cb3       \cf5 \strokec5 while\cf9 \strokec9 (\cf7 \strokec7 digitalRead\cf9 \strokec9 (\cf4 \strokec4 buttonTwoPin\cf9 \strokec9 )\cf4 \strokec4  == \cf6 \strokec6 0\cf9 \strokec9 )\{\cf2 \strokec2  // until button 2 is pressed\cf4 \cb1 \strokec4 \
+\cb3         \cf7 \strokec7 tone\cf9 \strokec9 (\cf4 \strokec4 speakerPin, \cf6 \strokec6 500\cf4 \strokec4 , \cf6 \strokec6 500\cf9 \strokec9 )\cf4 \strokec4 ;\cf2 \strokec2  // play the low speaker sound as the alarm\cf4 \cb1 \strokec4 \
+\cb3       \cf9 \strokec9 \}\cf4 \cb1 \strokec4 \
+\cb3       \cf7 \strokec7 digitalWrite\cf9 \strokec9 (\cf4 \strokec4 LEDTwoPin, LOW\cf9 \strokec9 )\cf4 \strokec4 ;\cf2 \strokec2  // once button 2 is pressed, turn off the LED\cf4 \cb1 \strokec4 \
+\cb3       \cf7 \strokec7 delay\cf9 \strokec9 (\cf6 \strokec6 500\cf9 \strokec9 )\cf4 \strokec4 ;\cf2 \strokec2  // and wait a half second\cf4 \cb1 \strokec4 \
+\cb3     \cf9 \strokec9 \}\cf4 \strokec4  \cf5 \strokec5 else\cf4 \strokec4  \cf5 \strokec5 if\cf9 \strokec9 (\cf4 \strokec4 randy == \cf6 \strokec6 3\cf9 \strokec9 )\{\cf2 \strokec2  // if the number equals 3\cf4 \cb1 \strokec4 \
+\cb3       \cf7 \strokec7 digitalWrite\cf9 \strokec9 (\cf4 \strokec4 LEDThreePin, HIGH\cf9 \strokec9 )\cf4 \strokec4 ;\cf2 \strokec2  // light up LED 3\cf4 \cb1 \strokec4 \
+\cb3       \cf5 \strokec5 while\cf9 \strokec9 (\cf7 \strokec7 digitalRead\cf9 \strokec9 (\cf4 \strokec4 buttonThreePin\cf9 \strokec9 )\cf4 \strokec4  == \cf6 \strokec6 0\cf9 \strokec9 )\{\cf2 \strokec2  //until button 3 is pressed\cf4 \cb1 \strokec4 \
+\cb3         \cf7 \strokec7 tone\cf9 \strokec9 (\cf4 \strokec4 speakerPin, \cf6 \strokec6 500\cf4 \strokec4 , \cf6 \strokec6 500\cf9 \strokec9 )\cf4 \strokec4 ;\cf2 \strokec2  // play the alarm sound\cf4 \cb1 \strokec4 \
+\cb3       \cf9 \strokec9 \}\cf4 \cb1 \strokec4 \
+\cb3       \cf7 \strokec7 digitalWrite\cf9 \strokec9 (\cf4 \strokec4 LEDThreePin, LOW\cf9 \strokec9 )\cf4 \strokec4 ;\cf2 \strokec2  // once button 3 is pressed, turn off LED 3\cf4 \cb1 \strokec4 \
+\cb3       \cf7 \strokec7 delay\cf9 \strokec9 (\cf6 \strokec6 500\cf9 \strokec9 )\cf4 \strokec4 ;\cf2 \strokec2  // and wait a half second\cf4 \cb1 \strokec4 \
+\cb3     \cf9 \strokec9 \}\cf4 \strokec4  \cf5 \strokec5 else\cf4 \strokec4  \cf5 \strokec5 if\cf9 \strokec9 (\cf4 \strokec4 randy == \cf6 \strokec6 4\cf9 \strokec9 )\{\cf2 \strokec2  // you get the idea! now repeat for LED and button 4\cf4 \cb1 \strokec4 \
+\cb3       \cf7 \strokec7 digitalWrite\cf9 \strokec9 (\cf4 \strokec4 LEDFourPin, HIGH\cf9 \strokec9 )\cf4 \strokec4 ;\cb1 \
+\cb3       \cf5 \strokec5 while\cf9 \strokec9 (\cf7 \strokec7 digitalRead\cf9 \strokec9 (\cf4 \strokec4 buttonFourPin\cf9 \strokec9 )\cf4 \strokec4  == \cf6 \strokec6 0\cf9 \strokec9 )\{\cf4 \cb1 \strokec4 \
+\cb3         \cf7 \strokec7 tone\cf9 \strokec9 (\cf4 \strokec4 speakerPin, \cf6 \strokec6 500\cf4 \strokec4 , \cf6 \strokec6 500\cf9 \strokec9 )\cf4 \strokec4 ;\cb1 \
+\cb3       \cf9 \strokec9 \}\cf4 \cb1 \strokec4 \
+\cb3       \cf7 \strokec7 digitalWrite\cf9 \strokec9 (\cf4 \strokec4 LEDFourPin, LOW\cf9 \strokec9 )\cf4 \strokec4 ;\cb1 \
+\cb3       \cf7 \strokec7 delay\cf9 \strokec9 (\cf6 \strokec6 500\cf9 \strokec9 )\cf4 \strokec4 ;\cb1 \
+\cb3     \cf9 \strokec9 \}\cf4 \strokec4  \cf5 \strokec5 else\cf4 \strokec4  \cf5 \strokec5 if\cf9 \strokec9 (\cf4 \strokec4 randy == \cf6 \strokec6 5\cf9 \strokec9 )\{\cf2 \strokec2  // now repeat for LED and button 5\cf4 \cb1 \strokec4 \
+\cb3       \cf7 \strokec7 digitalWrite\cf9 \strokec9 (\cf4 \strokec4 LEDFivePin, HIGH\cf9 \strokec9 )\cf4 \strokec4 ;\cb1 \
+\cb3       \cf5 \strokec5 while\cf9 \strokec9 (\cf7 \strokec7 digitalRead\cf9 \strokec9 (\cf4 \strokec4 buttonFivePin\cf9 \strokec9 )\cf4 \strokec4  == \cf6 \strokec6 0\cf9 \strokec9 )\{\cf4 \cb1 \strokec4 \
+\cb3         \cf7 \strokec7 tone\cf9 \strokec9 (\cf4 \strokec4 speakerPin, \cf6 \strokec6 500\cf4 \strokec4 , \cf6 \strokec6 500\cf9 \strokec9 )\cf4 \strokec4 ;\cb1 \
+\cb3       \cf9 \strokec9 \}\cf4 \cb1 \strokec4 \
+\cb3       \cf7 \strokec7 digitalWrite\cf9 \strokec9 (\cf4 \strokec4 LEDFivePin, LOW\cf9 \strokec9 )\cf4 \strokec4 ;\cb1 \
+\cb3       \cf7 \strokec7 delay\cf9 \strokec9 (\cf6 \strokec6 500\cf9 \strokec9 )\cf4 \strokec4 ;\cb1 \
+\cb3     \cf9 \strokec9 \}\cf4 \cb1 \strokec4 \
+\cb3     count--;\cf2 \strokec2  // lower count by one since we have clicked one button\cf4 \cb1 \strokec4 \
+\cb3   \cf9 \strokec9 \}\cf4 \cb1 \strokec4 \
+\cb3   minuteAlarm = \cf6 \strokec6 0\cf4 \strokec4 ;\cf2 \strokec2  // reset the alarm to 00:00\cf4 \cb1 \strokec4 \
+\cb3   hourAlarm = \cf6 \strokec6 0\cf4 \strokec4 ;\cb1 \
+\pard\pardeftab720\partightenfactor0
+\cf9 \cb3 \strokec9 \}\cf4 \cb1 \strokec4 \
+}
